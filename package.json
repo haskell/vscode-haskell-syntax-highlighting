@@ -250,7 +250,7 @@
   },
   "devDependencies": {
     "@types/vscode": "^1.0.0",
-    "@vscode/vsce": "^2.25.0",
+    "@vscode/vsce": "^3.9.2",
     "js-yaml": "^4.0.0",
     "npm": "^11.13.0",
     "ts-loader": "^9.4.2",
