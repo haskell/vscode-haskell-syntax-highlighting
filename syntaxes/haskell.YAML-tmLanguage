@@ -78,75 +78,6 @@ patterns:
       - include: '#comment_like'
       - include: '#where'
       - include: '#type_signature'
-  # GADT declaration
-  # must find `where` keyword on the same line
-  # (only way to distinguish between GADT and ADT)
-  - begin: >-
-      (?x)
-        (?:^(\s*)|(?<!')\b)(?:(type)\s+)?(data|newtype)(?:\s+(instance))?\s+
-        # Keep consuming characters until:
-        ((?:(?!
-        # the equals symbol or the start of a single-line comment, or
-          (?:
-            (?<![\p{S}\p{P}&&[^(),;\[\]`{}_"']]) # non-symbol
-            (?:=|--+)
-            (?![\p{S}\p{P}&&[^(),;\[\]`{}_"']])  # non-symbol
-          )
-        # the "where" or "deriving" keywords, or
-        | (?:\b(?<!')(?:where|deriving)\b(?!'))
-        # the start of a block comment.
-        | {-
-        #
-        ).)*)
-        (?=\b(?<!'')where\b(?!''))
-    beginCaptures:
-      '2': {name: keyword.other.type.haskell}
-      '3': {name: keyword.other.$3.haskell}
-      '4': {name: keyword.other.instance.haskell}
-      '5':
-        patterns:
-          - include: '#type_signature'
-    name: meta.declaration.$3.generalized.haskell
-    end: |
-      (?x) # Detect end of data declaration:
-               # Deriving clause
-         (?=(?<!')\bderiving\b(?!'))
-               # Decreasing indentation
-         |(?=\}|;)      # Explicit indentation
-         |^(?!          # Implicit indentation: end match on newline *unless* the new line is either:
-             \1\s+\S    # - more indented, or
-           | \s*        # - starts with whitespace, followed by:
-             (?: $      #   - the end of the line (i.e. empty line), or
-             |\{-[^@]   #   - the start of a block comment, or
-             |--+       #   - the start of a single-line comment.
-                (?![\p{S}\p{P}&&[^(),;\[\]{}`_"']]).*$) # non-symbol
-                        # The double dash may not be followed by other operator characters
-                        # (then it would be an operator, not a comment)
-           )
-    patterns:
-      - include: '#comment_like'
-      # Can't simply include 'where' pattern,
-      # because it includes all of $self,
-      # whereas we want something slightly different
-      - begin: >-
-          (?x)
-            (?<!')\b(where)
-            \s*(\{)(?!-)
-        end: '\}'
-        beginCaptures:
-          '1': {name: keyword.other.where.haskell}
-          '2': {name: punctuation.brace.haskell}
-        endCaptures:
-          '1': {name: punctuation.brace.haskell}
-        patterns:
-          - include: '#comment_like'
-          - include: '#gadt_constructor'
-          - match: ';'
-            name: punctuation.semicolon.haskell
-      - match: '\b(?<!'')(where)\b(?!'')'
-        name: keyword.other.where.haskell
-      - include: '#deriving'
-      - include: '#gadt_constructor'
   - include: '#role_annotation'
   - name: 'meta.declaration.pattern.type.haskell'
     begin: |
@@ -203,7 +134,62 @@ patterns:
           )
     patterns:
       - include: '$self'
-  # ADT declaration (no "where" keyword on the same line)
+  # A GADT declaration with 'where' on the same line as the 'data'/'newtype'.
+  # (The multi-line case is handled separately via '#gadt_where_body'.)
+  - begin: >-
+      (?x)
+        (?:^(\s*)|(?<!')\b)(?:(type)\s+)?(data|newtype)(?:\s+(instance))?\s+
+        # Keep consuming characters until:
+        ((?:(?!
+        # the equals symbol or the start of a single-line comment, or
+          (?:
+            (?<![\p{S}\p{P}&&[^(),;\[\]`{}_"']]) # non-symbol
+            (?:=|--+)
+            (?![\p{S}\p{P}&&[^(),;\[\]`{}_"']])  # non-symbol
+          )
+        # the "where" or "deriving" keywords, or
+        | (?:\b(?<!')(?:where|deriving)\b(?!'))
+        # the start of a block comment.
+        | {-
+        #
+        ).)*)
+        # 'where' on the same line (allowing intervening block comments)
+        (?=(?:\s|\{-(?:[^-]|-(?!\}))*-\})*\b(?<!'')where\b(?!''))
+    beginCaptures:
+      '2': {name: keyword.other.type.haskell}
+      '3': {name: keyword.other.$3.haskell}
+      '4': {name: keyword.other.instance.haskell}
+      '5':
+        patterns:
+          - include: '#type_signature'
+    name: meta.declaration.$3.generalized.haskell
+    end: |
+      (?x) # Detect end of data declaration:
+               # Deriving clause
+         (?=(?<!')\bderiving\b(?!'))
+               # Decreasing indentation
+         |(?=\}|;)      # Explicit indentation
+         |^(?!          # Implicit indentation: end match on newline *unless* the new line is either:
+             \1\s+\S    # - more indented, or
+           | \s*        # - starts with whitespace, followed by:
+             (?: $      #   - the end of the line (i.e. empty line), or
+             |\{(?!-)   #   - an explicit '{ .. }' block (layout is off inside it,
+                        #     so its indentation does not matter), or
+             |\{-[^@]   #   - the start of a block comment, or
+             |--+       #   - the start of a single-line comment.
+                (?![\p{S}\p{P}&&[^(),;\[\]{}`_"']]).*$) # non-symbol
+                        # The double dash may not be followed by other operator characters
+                        # (then it would be an operator, not a comment)
+           )
+    patterns:
+      - include: '#comment_like'
+      - match: '\b(?<!'')(where)\b(?!'')'
+        name: keyword.other.where.haskell
+      # Within the 'where' block, a top-level '{' is a layout brace, not record syntax.
+      - include: '#gadt_explicit_layout'
+      - include: '#deriving'
+      - include: '#gadt_constructor'
+  # ADT declaration (no 'where' keyword on the same line)
   - begin: >-
       (?x)
         # Data declaration.
@@ -250,6 +236,8 @@ patterns:
       - include: '#comment_like'
       - include: '#deriving'
       - include: '#forall'
+      - include: '#gadt_where_body'    # Switch over to GADT syntax with a 'where' block on a separate line
+      - include: '#family_or_instance' # Handle 'family'/'instance' on a separate line
       - include: '#adt_constructor'
       - include: '#record_decl'
       - include: '#data_context'
@@ -337,6 +325,8 @@ patterns:
                        # (then it would be an operator, not a comment)
           )
     patterns:
+      - include: '#comment_like'
+      - include: '#family_or_instance' # Handle 'family'/'instance' keywords on subsequent line
       - include: '#type_signature'
   - begin: '(?:^(\s*)|(?<!'')\b)(instance)(\b(?!''))'
     beginCaptures:
@@ -1203,21 +1193,84 @@ repository:
           - include: '#forall'
           - include: '#data_context'
           - include: '#type_signature'
+  # Handle the keywords 'family'/'instance' (reserved keywords in types) when
+  # they appear on a separate line than 'type'/'data'/'newtype'.
+  family_or_instance:
+    match: '\b(?<!'')(family|instance)\b(?!'')'
+    captures:
+      '1': {name: keyword.other.$1.haskell}
+  # GADT syntax body with explicit layout using semicolons/braces.
+  gadt_explicit_layout:
+    begin: '(?<!'')(\{)(?!-)'
+    beginCaptures:
+      '1': {name: punctuation.brace.haskell}
+    end: '\}'
+    endCaptures:
+      '0': {name: punctuation.brace.haskell}
+    patterns:
+      - include: '#comment_like'
+      - match: ';'
+        name: punctuation.semicolon.haskell
+      - begin: >-
+          (?x)
+            (\b(?<!')[\p{Lu}\p{Lt}][\p{Ll}_\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{Nd}']*) # named constructor
+           |(\()\s*(:[\p{S}\p{P}&&[^(),;\[\]`{}_"']]*)\s*(\))                 # prefix operator
+        beginCaptures:
+          '1': {name: constant.other.haskell}
+          '2': {name: punctuation.paren.haskell}
+          '3': {name: constant.other.operator.prefix.haskell}
+          '4': {name: punctuation.paren.haskell}
+        end: '(?=;|\})'
+        patterns:
+          - include: '#gadt_constructors'
+  # A GADT 'where' clause whose 'where' is not on the same line as the
+  # 'data'/'newtype'.
+  #
+  # The 'begin' pattern matches up to and including 'where', so that the body
+  # is only constructors.
+  gadt_where_body:
+    begin: '(?x) ^(\s*) (.*? \b(?<!'')where\b(?!''))'
+    beginCaptures:
+      '2':
+        patterns:
+          - include: '#comment_like'
+          - include: '#family_or_instance'
+          - match: '\b(?<!'')(where)\b(?!'')'
+            name: keyword.other.where.haskell
+          - include: '#type_signature'
+    # The body ends at the first line that is less indented than 'where' and is
+    # not blank, a comment, or the start of an explicit '{ .. }' block.
+    # It is an 'end' (not a 'while') so that it is *not* re-checked inside an
+    # block with explicit layout (as its indentation is irrelevant).
+    #
+    # '#gadt_constructor' relies on the indentation being intact, so
+    # we make sure that the end pattern doesn't consume it.
+    end: '^(?!\1|[ \t]*$|[ \t]*(?:--|[{]))'
+    patterns:
+      - include: '#comment_like'
+      - include: '#gadt_explicit_layout'
+      - include: '#gadt_constructor'
+  # A GADT constructor under implicit layout (i.e. not inside explicit braces).
   gadt_constructor:
     patterns:
-      # GADT constructor on start of line
+      # At the start of a line: the declaration extends by indentation, so it
+      # spans a multi-line signature. (A leading block comment is allowed.)
       - begin: >-
           (?x)
              ^(\s*)
+                ((?:\{-(?:[^-]|-(?!\}))*-\}[ \t]*)*)
                 (?:
                   (\b(?<!')[\p{Lu}\p{Lt}][\p{Ll}_\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{Nd}']*)
                 |(\()\s*(:[\p{S}\p{P}&&[^(),;\[\]`{}_"']]*)\s*(\))
                 )
         beginCaptures:
-          '2': {name: constant.other.haskell}
-          '3': {name: punctuation.paren.haskell}
-          '4': {name: constant.other.operator.prefix.haskell}
-          '5': {name: punctuation.paren.haskell}
+          '2':
+            patterns:
+              - include: '#comment_like'
+          '3': {name: constant.other.haskell}
+          '4': {name: punctuation.paren.haskell}
+          '5': {name: constant.other.operator.prefix.haskell}
+          '6': {name: punctuation.paren.haskell}
         end: |
           (?x)
             # GADT constructor ends
@@ -1228,23 +1281,22 @@ repository:
                 \1\s+\S    # - more indented, or
               | \s*        # - starts with whitespace, followed by:
                 (?: $      #   - the end of the line (i.e. empty line), or
-                |\{-[^@]   #   - the start of a block comment, or
+                |\{-[^@](?:[^-]|-(?!\}))*$  # - a block comment that opens a multi-line
+                           #   comment (a closed '{- .. -}' followed by a constructor
+                           #   on the same line is a new constructor, not a continuation), or
                 |--+       #   - the start of a single-line comment.
                    (?![\p{S}\p{P}&&[^(),;\[\]{}`_"']]).*$) # non-symbol
                            # The double dash may not be followed by other operator characters
                            # (then it would be an operator, not a comment)
               )
         patterns:
-          - include: '#comment_like'
-          - include: '#deriving'
-          - include: '#double_colon'
-          - include: '#record_decl'
-          - include: '#type_signature'
-      # Remaining case: GADT constructor not on start of line
+          - include: '#gadt_constructors'
+      # Not at the start of a line (e.g. directly after 'where'): ends at EOL
+      # or explicit layout.
       - begin: >-
           (?x)
-            (\b(?<!')[\p{Lu}\p{Lt}][\p{Ll}_\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{Nd}']*) # named constructor
-           |(\()\s*(:[\p{S}\p{P}&&[^(),;\[\]`{}_"']]*)\s*(\))    # prefix operator
+            (\b(?<!')[\p{Lu}\p{Lt}][\p{Ll}_\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{Nd}']*)  # named constructor
+           |(\()\s*(:[\p{S}\p{P}&&[^(),;\[\]`{}_"']]*)\s*(\))                  # prefix operator
         beginCaptures:
           '1': {name: constant.other.haskell}
           '2': {name: punctuation.paren.haskell}
@@ -1252,11 +1304,33 @@ repository:
           '4': {name: punctuation.paren.haskell}
         end: '(?=;|\}|$)'
         patterns:
-          - include: '#comment_like'
-          - include: '#deriving'
-          - include: '#double_colon'
-          - include: '#record_decl'
-          - include: '#type_signature'
+          - include: '#gadt_constructors'
+  # The signature shared by the constructor forms above: '::' and the type, plus
+  # any further names sharing it (the 'G2' in 'G1, G2 :: G Int').
+  gadt_constructors:
+    patterns:
+      - include: '#comment_like'
+      - include: '#deriving'
+      - include: '#gadt_constructor_name'
+      - include: '#double_colon'
+      - include: '#record_decl'
+      - include: '#type_signature'
+  # An additional GADT constructor name sharing a type signature,
+  # e.g. the 'B' in 'data T where { A, B :: T }'.
+  gadt_constructor_name:
+    match: >-
+      (?x)
+        (,)\s*
+        (?:
+          (\b(?<!')[\p{Lu}\p{Lt}][\p{Ll}_\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{Nd}']*) # named constructor
+        |(\()\s*(:[\p{S}\p{P}&&[^(),;\[\]`{}_"']]*)\s*(\))                  # prefix operator
+        )
+    captures:
+      '1': {name: punctuation.separator.comma.haskell}
+      '2': {name: constant.other.haskell}
+      '3': {name: punctuation.paren.haskell}
+      '4': {name: constant.other.operator.prefix.haskell}
+      '5': {name: punctuation.paren.haskell}
   type_application:
     patterns:
       - match: '(?<=[\s,;\[\]{}"])(@)(\(\s*\))'

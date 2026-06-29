@@ -5,6 +5,12 @@
 - Fix highlighting of `type` keyword followed by parenthesis in an export
   list ([#267](https://github.com/haskell/language-haskell/pull/257)).
 - Add support for `TypeData` type data declarations.
+- Improvements to highlighting of GADTs:
+    - allow the `where` to be on a different line than the `data`
+    - accept a block comment between the `data` and the `where`,
+    - handle explicit semicolons/braces for layout.
+- Properly highlight `family`/`instance` in type/data family declarations and
+  instances when `family`/`instance` is on a separate line.
 
 ## 3.8.0 - 14.06.2026
 

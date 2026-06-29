@@ -16,19 +16,19 @@ data Expr a where
     B   :: Bool -> Expr Bool
 --  ^ constant.other.haskell
 --         ^^^^ storage.type.haskell
-    Add :: Expr Int 
+    Add :: Expr Int
 --  ^^^ constant.other.haskell
 --         ^^^^ storage.type.haskell
         -> Expr Int -> Expr Int
 --         ^^^^ storage.type.haskell
-    Mul :: Expr Int 
+    Mul :: Expr Int
 --  ^^^ constant.other.haskell
 --         ^^^^ storage.type.haskell
         -> Expr Int -> Expr Int
 --         ^^^^ storage.type.haskell
     Eq
 --  ^^ constant.other.haskell
-      :: Eq a => 
+      :: Eq a =>
 --       ^^ storage.type.haskell
         Expr a -> Expr a -> Expr Bool
 --      ^^^^ storage.type.haskell

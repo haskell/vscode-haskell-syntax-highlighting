@@ -3,7 +3,7 @@
     data T = C
 --  ^^^^ keyword.other.data.haskell
 --       ^ storage.type.haskell
---           ^ constant.other.haskell 
+--           ^ constant.other.haskell
       T
 --    ^ storage.type.haskell
 
@@ -56,7 +56,7 @@
 --      ^^ constant.other.haskell
 --         ^^ storage.type.haskell
 --    ^ keyword.operator.pipe.haskell
-    
+
     data D3 = C5 { f5 :: T5, g5 :: T5 } | C6 T6
 --  ^^^^ keyword.other.data.haskell
 --          ^ keyword.operator.eq.haskell
