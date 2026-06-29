@@ -3,7 +3,7 @@
 ## unreleased
 
 - Fix highlighting of `type` keyword followed by parenthesis in an export
-  list ([#267](https://github.com/haskell/language-haskell/pull/257)).
+  list ([#267](https://github.com/haskell/language-haskell/issues/267)).
 - Add support for `TypeData` type data declarations.
 - Improvements to highlighting of GADTs:
     - allow the `where` to be on a different line than the `data`
