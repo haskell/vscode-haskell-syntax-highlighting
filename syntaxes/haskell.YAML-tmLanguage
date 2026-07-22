@@ -1238,7 +1238,25 @@ repository:
   # The 'begin' pattern matches up to and including 'where', so that the body
   # is only constructors.
   gadt_where_body:
-    begin: '(?x) ^(\s*) (.*? \b(?<!'')where\b(?!''))'
+    begin: >-
+      (?x)
+        ^(\s*)
+        ( # Keep consuming characters until the 'where' keyword, ruling out comments.
+          # (The pattern is anchored to the start of the line, so it greedily matches
+          # before the #comment-like include could catch comments.)
+          (?:
+            \{-(?:[^-]|-(?!\}))*-\} # skipping over whole block comments, and
+          | (?!                     # refusing to enter a comment:
+              (?:
+                (?<![\p{S}\p{P}&&[^(),;\[\]`{}_"']]) # non-symbol
+                --+
+                (?![\p{S}\p{P}&&[^(),;\[\]{}`_"']])  # non-symbol
+              )
+            | \{-
+            ) .
+          )*?
+          \b(?<!')where\b(?!')
+        )
     beginCaptures:
       '2':
         patterns:
