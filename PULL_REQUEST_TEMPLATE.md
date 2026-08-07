@@ -1,12 +1,12 @@
 ## For changes related to the grammar
 
-- Please add a test case.
+- Please add a test. The usual procedure is to add a new test file to either
+  the `test/tests` or `test/tickets` directories (the latter when fixing a
+  particular ticket). Once you add a test file to one of these directories, it
+  will be picked up automatically (no further changes required).
 
-  - For changes to regular Haskell code simply add a new section to `test/syntax-examples/test.hs`.
-    Make sure your case has a descriptive comment about what it is covering.
+  Test files consist of source code annotated with expected TextMate scopes.
+  These annotations are then checked using `vscode-tmgrammar-test`.
 
-  - When adding foreign definitions, i.e. embeddings, add a new test file for the embedding in
-    question.
-
-- Add your changes to the `CHANGELOG.md` file, ideally with a reference to the issue the PR is
-  fixing. Also feel free to credit yourself there.
+- Add your changes to the `CHANGELOG.md` file, ideally with a reference to the
+  issue the PR is fixing. Also feel free to credit yourself there.
