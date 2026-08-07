@@ -11,6 +11,7 @@
     - handle explicit semicolons/braces for layout.
 - Properly highlight `family`/`instance` in type/data family declarations and
   instances when `family`/`instance` is on a separate line.
+- Highlight `{-# OPAQUE foo #-}` pragma.
 
 ## 3.8.0 - 14.06.2026
 

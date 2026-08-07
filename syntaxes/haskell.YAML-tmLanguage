@@ -841,7 +841,7 @@ repository:
             |MINIMAL|UNPACK|OVERLAPS|INCOHERENT
             |NOUNPACK|SOURCE|OVERLAPPING|OVERLAPPABLE|INLINE
             |NOINLINE|INLINE?ABLE|CONLIKE|LINE|COLUMN|RULES
-            |COMPLETE)\b(?!')
+            |COMPLETE|OPAQUE)\b(?!')
         name: keyword.other.preprocessor.haskell
       - begin: '(?i)\b(DEPRECATED|WARNING)\b'
         beginCaptures:
