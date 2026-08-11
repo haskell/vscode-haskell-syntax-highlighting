@@ -11,12 +11,12 @@ someFunc = do
     case (a :: Bool) of
         Nothing -> b
     return 6
-  where 
+  where
     ident = 4
     ident' = 9
 
 
-anotherFunc arg = do 
+anotherFunc arg = do
     { let thing = 5>
     ; arg <- doSomething 5
     ; let thing = 5
