@@ -1450,8 +1450,7 @@ repository:
       - match: '=>|⇒'
         name: keyword.operator.big-arrow.haskell
       - include: '#string_literal'
-      - match: '''[^'']'''
-        name: invalid
+      - include: '#char_literal'
       - include: '#type_application'
       - include: '#reserved_symbol'
       - include: '#type_operator'

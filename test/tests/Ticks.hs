@@ -48,18 +48,36 @@
 --                            ^^^     ^^ storage.type.operator.infix.haskell
 --         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ - invalid
 
-  type T = _t'_a'
---         ^^^^^^ variable.other.generic-type.haskell
---         ^^^^^^ - invalid
+  type T = _t'_a'b'c
+--         ^^^^^^^^^ variable.other.generic-type.haskell
+--         ^^^^^^ - string.quoted.single.haskell invalid
   type T = " a ' b ' c 'de' f'g''' 'a'"
 --         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.double.haskell
 --         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ - invalid
 
-  type T = '_'_t_a'
---         ^^^ invalid
-  type T = 'T'x
---         ^^^ invalid
-  type T = '_'
---         ^^^ invalid
-  type T = '_'
---         ^^^ invalid
+  data AB = A | B
+  type T = '( 'A, 'B )
+--         ^  ^   ^ keyword.operator.promotion.haskell
+--             ^   ^ storage.type.haskell
+--         ^^^^^^^^^^^ - string.quoted.single.haskell
+  type T = '( 'A', 'B' )
+--         ^ keyword.operator.promotion.haskell
+--            ^^^  ^^^ string.quoted.single.haskell
+--            ^^^^^^^^ - keyword.operator.promotion.haskell storage.type.haskell
+  type T = '[ '[', ']' ]
+--         ^ keyword.operator.promotion.haskell
+--          ^          ^ punctuation.bracket.haskell
+--            ^^^  ^^^ string.quoted.single.haskell
+--            ^^^^^^^^ - keyword.operator.promotion.haskell punctuation.bracket.haskell
+  type T a' b'' = '( a', b'', 'a' )
+--                   ^^  ^^^ variable.other.generic-type.haskell
+--                            ^^^ string.quoted.single.haskell
+--                   ^^^^^^^^ - string.quoted.single.haskell
+  type T = Proxy 'T -> Proxy 'T'
+--               ^ keyword.operator.promotion.haskell
+--                ^ storage.type.haskell
+--                           ^^^ string.quoted.single.haskell
+--                           ^^^ - keyword.operator.promotion.haskell storage.type.haskell
+  type T = '[ '\'', '\\', '\n' ]
+--            ^^^^  ^^^^  ^^^^ string.quoted.single.haskell
+--             ^^    ^^    ^^ constant.character.escape.haskell
