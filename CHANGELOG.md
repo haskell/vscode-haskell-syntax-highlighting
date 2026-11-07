@@ -12,6 +12,7 @@
 - Properly highlight `family`/`instance` in type/data family declarations and
   instances when `family`/`instance` is on a separate line.
 - Highlight `{-# OPAQUE foo #-}` pragma, thanks to [@bodigrim](http://github.com/bodigrim).
+- Support character literals in types ([#286](https://github.com/haskell/language-haskell/issues/286)).
 
 ## 3.8.0 - 14.06.2026
 
